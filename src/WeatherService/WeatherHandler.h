@@ -30,8 +30,8 @@ WeatherServiceHandler::WeatherServiceHandler() {
 // Remote Procedure "PlaceOrder"
 
 WeatherType::type WeatherServiceHandler::GetWeather(const int64_t city) {
-     // Your implementation goes here
-     printf("GetWeather\n");
+    // Your implementation goes here
+    printf("GetWeather\n");
 
     // if city ID is even, return COLD weather type
     // if city ID id odd, return WARM weather type
