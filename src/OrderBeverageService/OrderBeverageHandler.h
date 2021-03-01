@@ -90,15 +90,18 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
       beverageType = BeverageType::type::HOT;
 
     // 5. call the remote procedure : GetBeverage
+    std::string _return_bev;
+
     try {
-      // _return = beverage_preference_client->GetBeverage(beverageType);
-      _return = "foo";
+      beverage_preference_client->GetBeverage(_return_bev, beverageType);
+      _return = _return_bev;
     } catch (...) {
-      // _beverage_preference_client_pool->Push(beverage_preference_client_wrapper);
+      _beverage_preference_client_pool->Push(beverage_preference_client_wrapper);
       LOG(error) << "Failed to send call GetBeverage to beverage_preference-client";
       throw;
     }
     _beverage_preference_client_pool->Push(beverage_preference_client_wrapper);
+
 #endif
 }
 
