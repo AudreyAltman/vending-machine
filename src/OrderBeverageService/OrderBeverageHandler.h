@@ -8,6 +8,7 @@
 
 #include "../../gen-cpp/OrderBeverageService.h"
 #include "../../gen-cpp/WeatherService.h"
+#include "../../gen-cpp/BeveragePreferenceService.h"
 
 #include "../ClientPool.h"
 #include "../ThriftClient.h"
@@ -18,21 +19,26 @@ namespace vending_machine{
 class OrderBeverageServiceHandler : public OrderBeverageServiceIf {
  public:
   OrderBeverageServiceHandler(
-		  ClientPool<ThriftClient<WeatherServiceClient>> *) ;
+		  ClientPool<ThriftClient<WeatherServiceClient>> *,
+      ClientPool<ThriftClient<BeveragePreferenceServiceClient>> *) ;
   ~OrderBeverageServiceHandler() override=default;
 
   void PlaceOrder(std::string& _return, const int64_t city) override;
  private:
   ClientPool<ThriftClient<WeatherServiceClient>> *_weather_client_pool;
+  ClientPool<ThriftClient<BeveragePreferenceServiceClient>> *_beverage_preference_client_pool;
 };
 
 // Constructor
 OrderBeverageServiceHandler::OrderBeverageServiceHandler(
-		ClientPool<ThriftClient<WeatherServiceClient>> *weather_client_pool) {
+		ClientPool<ThriftClient<WeatherServiceClient>> *weather_client_pool,
+    ClientPool<ThriftClient<BeveragePreferenceServiceClient>> *beverage_preference_client_pool)
+    {
+      // Storing the clientpool
+      _weather_client_pool = weather_client_pool;
+      _beverage_preference_client_pool = beverage_preference_client_pool;
+    }
 
-     // Storing the clientpool
-     _weather_client_pool = weather_client_pool;
-}
 
 // Remote Procedure "PlaceOrder"
 void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t city){
@@ -51,10 +57,20 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
     }
     auto weather_client = weather_client_wrapper->GetClient();
 
-    // by default get cold
+    // 2. get the beverage preference service client pool
+    auto beverage_preference_client_wrapper = _beverage_preference_client_pool->Pop();
+    if (!beverage_preference_client_wrapper) {
+      ServiceException se;
+      se.errorCode = ErrorCode::SE_THRIFT_CONN_ERROR;
+      se.message = "Failed to connect to beverage-preference-service";
+      throw se;
+    }
+    auto beverage_preference_client = beverage_preference_client_wrapper->GetClient();
+
+    // by default get cold weather
     WeatherType::type weatherType = WeatherType::type::COLD;
 
-    // 2. call the remote procedure : GetWeather
+    // 3. call the remote procedure : GetWeather
     try {
       weatherType = weather_client->GetWeather(city);
     } catch (...) {
@@ -63,12 +79,26 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
       throw;
     }
     _weather_client_pool->Push(weather_client_wrapper);
-    
-   // 3. business logic
-   if(weatherType == WeatherType::type::WARM)
-	   _return = "Cold beverage";//BeverageType::type::COLD;
-   else
-	   _return = "Hot beverage";//BeverageType::type::HOT;
+
+    // by default get hot beverage
+    BeverageType::type beverageType = BeverageType::type::HOT;
+
+    // 4. business logic
+    if(weatherType == WeatherType::type::WARM)
+      beverageType = BeverageType::type::COLD;
+    else
+      beverageType = BeverageType::type::HOT;
+
+    // 5. call the remote procedure : GetBeverage
+    try {
+      // _return = beverage_preference_client->GetBeverage(beverageType);
+      _return = "foo";
+    } catch (...) {
+      // _beverage_preference_client_pool->Push(beverage_preference_client_wrapper);
+      LOG(error) << "Failed to send call GetBeverage to beverage_preference-client";
+      throw;
+    }
+    _beverage_preference_client_pool->Push(beverage_preference_client_wrapper);
 #endif
 }
 
