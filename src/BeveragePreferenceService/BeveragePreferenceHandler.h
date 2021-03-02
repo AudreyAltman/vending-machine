@@ -40,26 +40,25 @@ void BeveragePreferenceServiceHandler::GetBeverage(std::string& _return, const B
     // {“lemonade”,  “ice tea”,  “soda”} selected at random
 
     // 3. business logic
-    // int rem = rand()%3;
+    int rem = rand()%3;
 
-    // if(btype == BeverageType::type::HOT)
+    if(btype == BeverageType::type::HOT)
 
-    //   if (rem == 0)
-    //     _return = "cappuccino";
-    //   else if (rem == 1)
-    //     _return = "latte";
-    //   else
-    //     _return = "espresso";
+      if (rem == 0)
+        _return = "cappuccino";
+      else if (rem == 1)
+        _return = "latte";
+      else
+        _return = "espresso";
 
-    // else
+    else
      
-    //   if (rem == 0)
-    //     _return = "lemonade";
-    //   else if (rem == 1)
-    //     _return = "ice tea";
-    //   else
-    //     _return = "soda";
-    _return = "soda";
+      if (rem == 0)
+        _return = "lemonade";
+      else if (rem == 1)
+        _return = "ice tea";
+      else
+        _return = "soda";
 }
 
 } // namespace vending_machine
