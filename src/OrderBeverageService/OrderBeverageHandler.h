@@ -83,7 +83,7 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
     // by default get hot beverage
     BeverageType::type beverageType = BeverageType::type::HOT;
 
-    // 4. business logic
+    // 4. set beverage type based on weather type
     if(weatherType == WeatherType::type::WARM)
       beverageType = BeverageType::type::COLD;
     else
@@ -91,9 +91,9 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
 
     // 5. call the remote procedure : GetBeverage
     std::string _return_bev;
-
     try {
       beverage_preference_client->GetBeverage(_return_bev, beverageType);
+      // return the beverage type string
       _return = _return_bev;
     } catch (...) {
       _beverage_preference_client_pool->Push(beverage_preference_client_wrapper);
